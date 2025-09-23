@@ -1,0 +1,1209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cross Stitch Pattern Designer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            overflow: visible;
+        }
+
+        .header {
+            background: #1395BA;
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .controls {
+            padding: 30px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+            position: relative;
+            z-index: 10;
+        }
+
+        .control-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            align-items: end;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .control-group label {
+            font-weight: 600;
+            color: #374151;
+            font-size: 14px;
+        }
+
+        .dropdown {
+            padding: 8px 12px;
+            border: 2px solid #d1d5db;
+            border-radius: 8px;
+            background: white;
+            font-size: 14px;
+            cursor: pointer;
+            min-width: 150px;
+            position: relative;
+            z-index: 1000;
+            -webkit-appearance: menulist;
+            -moz-appearance: menulist;
+            appearance: menulist;
+        }
+        
+        .dropdown:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+            z-index: 1001;
+        }
+        
+        .color-input {
+            padding: 10px 12px;
+            border: 2px solid #d1d5db;
+            border-radius: 8px;
+            background: white;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+
+        .dropdown:focus, .color-input:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .action-btn {
+            padding: 10px 16px;
+            background: #F16C1F;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(241, 108, 31, 0.3);
+            background: #e55a0f;
+        }
+
+        .color-palette {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 10px;
+            margin-top: 20px;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .color-picker-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .color-picker {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            border: 3px solid #d1d5db;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .color-picker:hover {
+            transform: scale(1.1);
+        }
+
+        .color-picker.active {
+            border-color: #1395BA;
+            box-shadow: 0 0 0 3px rgba(19, 149, 186, 0.3);
+        }
+
+        .color-label {
+            font-size: 11px;
+            font-weight: 500;
+            color: #6b7280;
+        }
+
+        .canvas-container {
+            padding: 30px;
+            display: flex;
+            justify-content: center;
+            min-height: 400px;
+        }
+
+        .grid-container {
+            border: 3px solid #374151;
+            background: #fff;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .grid {
+            display: grid;
+            gap: 1px;
+            background-color: #d1d5db;
+            user-select: none;
+        }
+
+        .grid-cell {
+            width: 10px;
+            height: 10px;
+            background-color: white;
+            cursor: pointer;
+            transition: all 0.1s ease;
+            border: 1px solid transparent;
+        }
+
+        .grid-cell:hover {
+            border-color: #1395BA;
+            transform: scale(1.1);
+        }
+
+        .grid-cell.selecting {
+            border-color: #F16C1F !important;
+            background-color: rgba(241, 108, 31, 0.3) !important;
+        }
+
+        .info-panel {
+            padding: 20px 30px;
+            background: #f8f9fa;
+            text-align: center;
+            color: #6b7280;
+        }
+
+        .size-info {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+
+        .size-info span {
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .basics-section {
+            padding: 40px;
+            background: white;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .basics-section h2 {
+            color: #1395BA;
+            font-size: 2em;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .basics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+
+        .basics-card {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 8px;
+            border-left: 4px solid #F16C1F;
+        }
+
+        .basics-card h3 {
+            color: #374151;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .basics-card ul {
+            color: #6b7280;
+            line-height: 1.6;
+        }
+
+        .basics-card li {
+            margin-bottom: 8px;
+        }
+
+        @media (max-width: 768px) {
+            .control-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .color-palette {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            
+            .grid-cell {
+                width: 8px;
+                height: 8px;
+            }
+
+            .basics-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Cross Stitch Pattern Designer</h1>
+            <p>Create beautiful cross stitch patterns with professional tools</p>
+        </div>
+
+        <div class="controls">
+            <div class="control-grid">
+                <div class="control-group">
+                    <label for="canvasSize">Canvas Size</label>
+                    <select id="canvasSize" class="dropdown">
+                        <option value="3x4">3×4 inches</option>
+                        <option value="4x6" selected>4×6 inches</option>
+                        <option value="5x7">5×7 inches</option>
+                        <option value="8x10">8×10 inches</option>
+                        <option value="9x12">9×12 inches</option>
+                        <option value="11x14">11×14 inches</option>
+                        <option value="16x20">16×20 inches</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label for="fabricCount">Stitch Count</label>
+                    <select id="fabricCount" name="fabricCount" class="dropdown">
+                        <option value="11">11-count Aida</option>
+                        <option value="14" selected>14-count Aida</option>
+                        <option value="16">16-count Aida</option>
+                        <option value="18">18-count Aida</option>
+                        <option value="22">22-count Hardanger</option>
+                        <option value="28">28-count Evenweave</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label for="orientation">Orientation</label>
+                    <select id="orientation" class="dropdown">
+                        <option value="portrait" selected>Portrait</option>
+                        <option value="landscape">Landscape</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label for="downloadOptions">Download</label>
+                    <select id="downloadOptions" class="dropdown">
+                        <option value="">Choose format...</option>
+                        <option value="png">Download PNG</option>
+                        <option value="pdf">Download PDF</option>
+                        <option value="json">Save Pattern Data</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label>&nbsp;</label>
+                    <button class="action-btn" onclick="clearGrid()">Clear Grid</button>
+                </div>
+            </div>
+
+            <div class="color-palette">
+                <div class="color-picker-group">
+                    <input type="color" class="color-picker active" value="#000000" data-color="0">
+                    <span class="color-label">Color 1</span>
+                </div>
+                <div class="color-picker-group">
+                    <input type="color" class="color-picker" value="#000000" data-color="1">
+                    <span class="color-label">Color 2</span>
+                </div>
+                <div class="color-picker-group">
+                    <input type="color" class="color-picker" value="#000000" data-color="2">
+                    <span class="color-label">Color 3</span>
+                </div>
+                <div class="color-picker-group">
+                    <input type="color" class="color-picker" value="#000000" data-color="3">
+                    <span class="color-label">Color 4</span>
+                </div>
+                <div class="color-picker-group">
+                    <input type="color" class="color-picker" value="#000000" data-color="4">
+                    <span class="color-label">Color 5</span>
+                </div>
+                <div class="color-picker-group">
+                    <input type="color" class="color-picker" value="#000000" data-color="5">
+                    <span class="color-label">Color 6</span>
+                </div>
+                <div class="color-picker-group">
+                    <input type="color" class="color-picker" value="#000000" data-color="6">
+                    <span class="color-label">Color 7</span>
+                </div>
+                <div class="color-picker-group">
+                    <input type="color" class="color-picker" value="#000000" data-color="7">
+                    <span class="color-label">Color 8</span>
+                </div>
+                <div class="color-picker-group">
+                    <input type="color" class="color-picker" value="#000000" data-color="8">
+                    <span class="color-label">Color 9</span>
+                </div>
+                <div class="color-picker-group">
+                    <input type="color" class="color-picker" value="#000000" data-color="9">
+                    <span class="color-label">Color 10</span>
+                </div>
+                <div class="color-picker-group">
+                    <input type="color" class="color-picker" value="#000000" data-color="10">
+                    <span class="color-label">Color 11</span>
+                </div>
+                <div class="color-picker-group">
+                    <input type="color" class="color-picker" value="#000000" data-color="11">
+                    <span class="color-label">Color 12</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="canvas-container">
+            <div class="grid-container">
+                <div class="grid" id="stitchGrid"></div>
+            </div>
+        </div>
+
+        <div class="info-panel">
+            <div id="patternInfo">4×6 inch pattern on 14-count Aida fabric</div>
+            <div class="size-info">
+                <span>Grid Size: <span id="gridSize">56 × 84</span></span>
+                <span>Stitches: <span id="stitchCount">0</span></span>
+                <span>Colors Used: <span id="colorsUsed">0</span></span>
+            </div>
+        </div>
+
+        <div class="basics-section">
+            <h2>Complete Cross Stitch Guide</h2>
+            <div class="basics-grid">
+                <div class="basics-card">
+                    <h3>🧵 Essential Materials</h3>
+                    <ul>
+                        <li><strong>Aida fabric:</strong> Evenweave fabric with clearly visible holes for easy counting. 14-count is best for beginners (14 holes per inch)</li>
+                        <li><strong>Embroidery floss:</strong> 6-strand cotton thread. Popular brands include DMC, Anchor, and Madeira. Each skein contains 8 meters</li>
+                        <li><strong>Tapestry needles:</strong> Blunt-tipped needles that won't split the fabric. Size 24 for 14-count, size 26 for 16-count fabric</li>
+                        <li><strong>Embroidery hoop:</strong> Keeps fabric taut. Choose 4-6 inch hoops for portability, larger for big projects</li>
+                        <li><strong>Small scissors:</strong> Sharp embroidery scissors for cutting threads cleanly</li>
+                        <li><strong>Pattern:</strong> Chart showing symbols that correspond to thread colors</li>
+                        <li><strong>Good lighting:</strong> Daylight lamp or bright LED light to reduce eye strain</li>
+                    </ul>
+                </div>
+
+                <div class="basics-card">
+                    <h3>📏 Understanding Fabric Counts</h3>
+                    <ul>
+                        <li><strong>11-count Aida:</strong> Large stitches, easy to see. Good for children or those with vision difficulties</li>
+                        <li><strong>14-count Aida:</strong> Most popular size. Perfect balance of visibility and detail. Finished size: 1 inch = 14 stitches</li>
+                        <li><strong>16-count Aida:</strong> Smaller stitches, more detail possible. 1 inch = 16 stitches</li>
+                        <li><strong>18-count Aida:</strong> Fine detail work. Requires good eyesight and lighting</li>
+                        <li><strong>22-count Hardanger:</strong> Very fine work, often used for delicate samplers</li>
+                        <li><strong>28-count Evenweave:</strong> Stitch over 2 threads (effectively 14-count) for smoother finish</li>
+                        <li><strong>Calculate finished size:</strong> Pattern width ÷ fabric count = inches wide</li>
+                    </ul>
+                </div>
+
+                <div class="basics-card">
+                    <h3>✂️ Preparation Steps</h3>
+                    <ul>
+                        <li><strong>Cut fabric generously:</strong> Add 3-4 inches on all sides of your design area for framing</li>
+                        <li><strong>Prevent fraying:</strong> Use masking tape, serger, or zigzag stitch around raw edges</li>
+                        <li><strong>Find the center:</strong> Fold fabric in half horizontally, then vertically. Mark center with a water-soluble pen</li>
+                        <li><strong>Prepare floss:</strong> Cut 18-inch lengths to prevent tangling. Separate all 6 strands, then recombine the number needed</li>
+                        <li><strong>Strand guide:</strong> Use 2 strands for 14-count, 3 strands for 11-count, 1-2 strands for 18-count</li>
+                        <li><strong>Organize colors:</strong> Use floss organizers or number each color according to your pattern</li>
+                    </ul>
+                </div>
+
+                <div class="basics-card">
+                    <h3>🪡 Basic Cross Stitch (The Foundation)</h3>
+                    <div style="font-family: monospace; background: #f0f0f0; padding: 15px; margin: 10px 0; border-radius: 5px;">
+                        <strong>Step-by-step cross stitch:</strong><br><br>
+                        <strong>1. Bottom diagonal (/):</strong><br>
+                        Come up at: bottom-left hole<br>
+                        Go down at: top-right hole<br><br>
+                        <strong>Visual:</strong><br>
+                        ● ○<br>
+                        ○ ●<br>
+                        ↑ Start here<br><br>
+                        
+                        <strong>2. Top diagonal (\):</strong><br>
+                        Come up at: bottom-right hole<br>
+                        Go down at: top-left hole<br><br>
+                        <strong>Complete X:</strong><br>
+                        ✗<br><br>
+                        
+                        <strong>Key rules:</strong><br>
+                        • All bottom diagonals go the same direction<br>
+                        • All top diagonals go the same direction<br>
+                        • Complete rows of bottom diagonals first<br>
+                        • Then return with top diagonals
+                    </div>
+                    <ul>
+                        <li><strong>Starting without knots:</strong> Leave 1-inch tail on back, secure by stitching over it</li>
+                        <li><strong>Ending threads:</strong> Weave tail under 4-5 existing stitches on the back</li>
+                        <li><strong>Consistent direction:</strong> ALL top stitches must slant the same way for professional look</li>
+                        <li><strong>Even tension:</strong> Stitches should lie flat but not be pulled tight</li>
+                    </ul>
+                </div>
+
+                <div class="basics-card">
+                    <h3>🔄 Half Stitch & Three-Quarter Stitch</h3>
+                    <div style="font-family: monospace; background: #f0f0f0; padding: 15px; margin: 10px 0; border-radius: 5px;">
+                        <strong>Half Stitch (/):</strong><br>
+                        Just the bottom diagonal of a cross stitch<br>
+                        Used for shading and backgrounds<br><br>
+                        
+                        <strong>Three-Quarter Stitch:</strong><br>
+                        Combines half stitch + small diagonal<br>
+                        Used for curved edges and details<br><br>
+                        
+                        <strong>Visual breakdown:</strong><br>
+                        Full X = ✗<br>
+                        Half = /<br>
+                        3/4 = / + small \<br><br>
+                        
+                        <strong>Technique:</strong><br>
+                        1. Make the half stitch normally<br>
+                        2. Add short diagonal from center to corner<br>
+                        3. Pierces fabric in center of square
+                    </div>
+                    <ul>
+                        <li><strong>When to use:</strong> Pattern will show these with special symbols</li>
+                        <li><strong>Sharp needle tip:</strong> Use for piercing center of fabric square</li>
+                        <li><strong>Smooth curves:</strong> Creates more realistic shapes in detailed designs</li>
+                    </ul>
+                </div>
+
+                <div class="basics-card">
+                    <h3>📏 Backstitch (Outlining)</h3>
+                    <div style="font-family: monospace; background: #f0f0f0; padding: 15px; margin: 10px 0; border-radius: 5px;">
+                        <strong>Backstitch technique:</strong><br><br>
+                        ●—●—●—●  ← Finished line<br><br>
+                        
+                        <strong>Steps:</strong><br>
+                        1. Come up one stitch length ahead<br>
+                        2. Go back down at start of previous stitch<br>
+                        3. Come up one stitch length ahead<br>
+                        4. Repeat to create continuous line<br><br>
+                        
+                        <strong>Movement pattern:</strong><br>
+                        Start: ●<br>
+                        Forward: ● → ●<br>
+                        Back: ● ← ●<br>
+                        Forward: ● → ●<br><br>
+                        
+                        <strong>Uses:</strong><br>
+                        • Outlining shapes<br>
+                        • Text and lettering<br>
+                        • Fine details<br>
+                        • Usually done AFTER cross stitches
+                    </div>
+                    <ul>
+                        <li><strong>Usually 1 strand:</strong> Creates fine, crisp lines</li>
+                        <li><strong>Dark colors:</strong> Often black, brown, or navy for contrast</li>
+                        <li><strong>Follow pattern lines:</strong> Backstitch lines shown as bold lines on charts</li>
+                        <li><strong>Smooth curves:</strong> Can stitch diagonally between holes for curved lines</li>
+                    </ul>
+                </div>
+
+                <div class="basics-card">
+                    <h3>🌟 French Knots (Textured Details)</h3>
+                    <div style="font-family: monospace; background: #f0f0f0; padding: 15px; margin: 10px 0; border-radius: 5px;">
+                        <strong>French Knot steps:</strong><br><br>
+                        1. Come up through fabric<br>
+                        2. Hold needle close to fabric<br>
+                        3. Wrap thread around needle 1-3 times<br>
+                        4. Keep wraps snug but not tight<br>
+                        5. Insert needle close to (not in) start hole<br>
+                        6. Pull thread taut while pushing needle through<br><br>
+                        
+                        <strong>Visual guide:</strong><br>
+                        ① Needle up: ↑<br>
+                        ② Wrap thread: 🌀<br>
+                        ③ Needle down: ↓ (nearby)<br>
+                        ④ Result: ●<br><br>
+                        
+                        <strong>Wrapping guide:</strong><br>
+                        • 1 wrap = small knot<br>
+                        • 2 wraps = medium knot<br>
+                        • 3 wraps = large knot
+                    </div>
+                    <ul>
+                        <li><strong>Common uses:</strong> Eyes, flower centers, snow, stars, textured areas</li>
+                        <li><strong>Practice first:</strong> Try on scrap fabric before adding to project</li>
+                        <li><strong>Consistent size:</strong> Use same number of wraps for uniform appearance</li>
+                        <li><strong>Thread choice:</strong> 2-3 strands for visible knots</li>
+                    </ul>
+                </div>
+
+                <div class="basics-card">
+                    <h3>📊 Reading Cross Stitch Patterns</h3>
+                    <ul>
+                        <li><strong>Grid system:</strong> Each square represents one cross stitch on the fabric</li>
+                        <li><strong>Symbols:</strong> Different symbols represent different colors. Check the color key</li>
+                        <li><strong>Bold lines:</strong> Usually indicate backstitch or outlining to be done last</li>
+                        <li><strong>Center marks:</strong> Arrows or lines showing the center point of the design</li>
+                        <li><strong>Color changes:</strong> New symbol = new color. Finish current area before switching</li>
+                        <li><strong>Empty squares:</strong> Leave blank (fabric shows through)</li>
+                        <li><strong>Special symbols:</strong> • = French knot, ⟋ = half stitch, ⟍⟋ = three-quarter stitch</li>
+                        <li><strong>Count carefully:</strong> Double-check placement before stitching</li>
+                        <li><strong>Mark progress:</strong> Highlight completed areas on pattern copy</li>
+                    </ul>
+                </div>
+
+                <div class="basics-card">
+                    <h3>🎯 Pro Tips for Beautiful Results</h3>
+                    <ul>
+                        <li><strong>Lighting is crucial:</strong> Use daylight bulbs or work near a window. Poor lighting causes mistakes and eye strain</li>
+                        <li><strong>Start from center:</strong> Ensures your design is properly positioned on the fabric</li>
+                        <li><strong>Work one color at a time:</strong> Complete all stitches of one color before switching</li>
+                        <li><strong>Don't carry thread too far:</strong> End and restart rather than carrying dark threads under light areas</li>
+                        <li><strong>Keep consistent tension:</strong> Stitches should be snug but not pulling the fabric</li>
+                        <li><strong>Fabric orientation:</strong> Keep fabric oriented the same way throughout the project</li>
+                        <li><strong>Take breaks:</strong> Rest your eyes and hands every 30-45 minutes</li>
+                        <li><strong>Clean hands:</strong> Keep hands clean to avoid transferring oils to fabric</li>
+                        <li><strong>Store properly:</strong> Roll in tissue paper or store flat to prevent creasing</li>
+                        <li><strong>Press when finished:</strong> Iron on reverse side with pressing cloth before framing</li>
+                    </ul>
+                </div>
+
+                <div class="basics-card">
+                    <h3>❌ Common Mistakes to Avoid</h3>
+                    <ul>
+                        <li><strong>Inconsistent stitch direction:</strong> All top stitches must slant the same way</li>
+                        <li><strong>Pulling too tight:</strong> Creates puckering and distorts the fabric</li>
+                        <li><strong>Skipping the center start:</strong> Can result in design running off the fabric</li>
+                        <li><strong>Using thread too long:</strong> Causes tangling and fraying. Stick to 18-inch lengths</li>
+                        <li><strong>Not securing thread ends:</strong> Properly weave in tails to prevent unraveling</li>
+                        <li><strong>Poor color organization:</strong> Label threads clearly to avoid mix-ups</li>
+                        <li><strong>Dirty fabric handling:</strong> Always work with clean hands</li>
+                        <li><strong>Ignoring pattern symbols:</strong> Each symbol has meaning - check the key regularly</li>
+                        <li><strong>Rushing the backstitch:</strong> Take time to make smooth, even lines</li>
+                        <li><strong>Not checking work:</strong> Step back periodically to catch mistakes early</li>
+                    </ul>
+                </div>
+
+                <div class="basics-card">
+                    <h3>🏁 Finishing Your Project</h3>
+                    <ul>
+                        <li><strong>Final check:</strong> Look for missed stitches or loose threads before removing from hoop</li>
+                        <li><strong>Gentle washing:</strong> Hand wash in cool water with mild detergent if needed</li>
+                        <li><strong>Drying:</strong> Lay flat on clean towel, reshape while damp</li>
+                        <li><strong>Pressing:</strong> Iron on reverse side using pressing cloth and low heat</li>
+                        <li><strong>Framing:</strong> Use acid-free mounting board and UV-protective glass</li>
+                        <li><strong>Centering:</strong> Measure carefully to center design in frame opening</li>
+                        <li><strong>Mounting:</strong> Use lacing method or pins (never glue) to secure fabric</li>
+                        <li><strong>Professional framing:</strong> Consider professional framing for heirloom pieces</li>
+                        <li><strong>Signing your work:</strong> Add initials and date in corner using backstitch</li>
+                        <li><strong>Care instructions:</strong> Keep away from direct sunlight to prevent fading</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script>
+        let gridWidth = 0;
+        let gridHeight = 0;
+        let stitchPattern = [];
+        let activeColor = 0;
+        let isDragging = false;
+        let dragStart = null;
+        let dragEnd = null;
+        let updateTimeout = null;
+
+        // Canvas size configurations
+        const canvasSizes = {
+            '3x4': { width: 3, height: 4 },
+            '4x6': { width: 4, height: 6 },
+            '5x7': { width: 5, height: 7 },
+            '8x10': { width: 8, height: 10 },
+            '9x12': { width: 9, height: 12 },
+            '11x14': { width: 11, height: 14 },
+            '16x20': { width: 16, height: 20 }
+        };
+
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded, initializing...');
+            setupEventListeners();
+            updateGrid();
+        });
+
+        function setupEventListeners() {
+            console.log('Setting up event listeners...');
+            
+            // Canvas controls
+            const canvasSize = document.getElementById('canvasSize');
+            const fabricCount = document.getElementById('fabricCount');
+            const orientation = document.getElementById('orientation');
+            
+            console.log('Elements found:', {
+                canvasSize: !!canvasSize,
+                fabricCount: !!fabricCount,
+                orientation: !!orientation
+            });
+            
+            if (canvasSize) canvasSize.addEventListener('change', updateGrid);
+            if (fabricCount) {
+                fabricCount.addEventListener('change', function() {
+                    console.log('Fabric count changed to:', this.value);
+                    updateGrid();
+                });
+                fabricCount.addEventListener('click', function() {
+                    console.log('Fabric count dropdown clicked');
+                });
+            }
+            if (orientation) orientation.addEventListener('change', updateGrid);
+            
+            // Download dropdown
+            document.getElementById('downloadOptions').addEventListener('change', function() {
+                const option = this.value;
+                if (option === 'png') downloadPNG();
+                else if (option === 'pdf') downloadPDF();
+                else if (option === 'json') downloadJSON();
+                this.value = ''; // Reset dropdown
+            });
+
+            // Color picker event listeners
+            document.querySelectorAll('.color-picker').forEach((picker, index) => {
+                picker.addEventListener('click', function() {
+                    setActiveColor(index);
+                });
+                
+                picker.addEventListener('change', function() {
+                    setActiveColor(index);
+                    // Only update the grid colors for squares that use this color
+                    updateGridColorsForColorIndex(index);
+                });
+            });
+        }
+
+        function setActiveColor(colorIndex) {
+            activeColor = colorIndex;
+            document.querySelectorAll('.color-picker').forEach(picker => {
+                picker.classList.remove('active');
+            });
+            document.querySelector(`[data-color="${colorIndex}"]`).classList.add('active');
+        }
+
+        function updateGrid() {
+            console.log('updateGrid() called');
+            
+            const size = document.getElementById('canvasSize').value;
+            const count = parseInt(document.getElementById('fabricCount').value);
+            const orientation = document.getElementById('orientation').value;
+            
+            console.log('Current values:', { size, count, orientation });
+            
+            const config = canvasSizes[size];
+            let width = config.width * count;
+            let height = config.height * count;
+            
+            if (orientation === 'landscape') {
+                [width, height] = [height, width];
+            }
+            
+            gridWidth = width;
+            gridHeight = height;
+            
+            console.log('Grid dimensions:', { gridWidth, gridHeight });
+            
+            // Initialize pattern array
+            stitchPattern = Array(gridHeight).fill().map(() => Array(gridWidth).fill(-1)); // -1 = empty
+            
+            createGrid();
+            updateInfo();
+        }
+
+        function createGrid() {
+            const grid = document.getElementById('stitchGrid');
+            grid.innerHTML = '';
+            
+            // Set grid CSS properties
+            grid.style.gridTemplateColumns = `repeat(${gridWidth}, 10px)`;
+            grid.style.gridTemplateRows = `repeat(${gridHeight}, 10px)`;
+            
+            // Create grid cells
+            for (let row = 0; row < gridHeight; row++) {
+                for (let col = 0; col < gridWidth; col++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'grid-cell';
+                    cell.dataset.row = row;
+                    cell.dataset.col = col;
+                    
+                    // Mouse events for drag selection
+                    cell.addEventListener('mousedown', function(e) {
+                        e.preventDefault();
+                        startDrag(row, col);
+                    });
+                    
+                    cell.addEventListener('mouseenter', function() {
+                        if (isDragging) {
+                            updateDrag(row, col);
+                        }
+                    });
+                    
+                    cell.addEventListener('mouseup', function() {
+                        endDrag();
+                    });
+                    
+                    grid.appendChild(cell);
+                }
+            }
+            
+            // Global mouse up event
+            document.addEventListener('mouseup', endDrag);
+        }
+
+        function startDrag(row, col) {
+            isDragging = true;
+            dragStart = { row, col };
+            dragEnd = { row, col };
+            updateDragSelection();
+        }
+
+        function updateDrag(row, col) {
+            if (!isDragging) return;
+            dragEnd = { row, col };
+            updateDragSelection();
+        }
+
+        function endDrag() {
+            if (!isDragging) return;
+            
+            // Apply color to selected area
+            const minRow = Math.min(dragStart.row, dragEnd.row);
+            const maxRow = Math.max(dragStart.row, dragEnd.row);
+            const minCol = Math.min(dragStart.col, dragEnd.col);
+            const maxCol = Math.max(dragStart.col, dragEnd.col);
+            
+            const cellsToUpdate = [];
+            
+            for (let row = minRow; row <= maxRow; row++) {
+                for (let col = minCol; col <= maxCol; col++) {
+                    if (stitchPattern[row][col] === activeColor) {
+                        stitchPattern[row][col] = -1; // Remove if same color
+                    } else {
+                        stitchPattern[row][col] = activeColor; // Set to active color
+                    }
+                    cellsToUpdate.push({ row, col });
+                }
+            }
+            
+            // Clear selection visuals
+            document.querySelectorAll('.grid-cell.selecting').forEach(cell => {
+                cell.classList.remove('selecting');
+            });
+            
+            // Update only the changed cells
+            updateSpecificCells(cellsToUpdate);
+            
+            isDragging = false;
+            dragStart = null;
+            dragEnd = null;
+            
+            // Update info with debouncing
+            clearTimeout(updateTimeout);
+            updateTimeout = setTimeout(updateInfo, 100);
+        }
+
+        function updateDragSelection() {
+            if (!dragStart || !dragEnd) return;
+            
+            const minRow = Math.min(dragStart.row, dragEnd.row);
+            const maxRow = Math.max(dragStart.row, dragEnd.row);
+            const minCol = Math.min(dragStart.col, dragEnd.col);
+            const maxCol = Math.max(dragStart.col, dragEnd.col);
+            
+            // Clear previous selection
+            document.querySelectorAll('.grid-cell').forEach(cell => {
+                cell.classList.remove('selecting');
+            });
+            
+            // Highlight current selection
+            for (let row = minRow; row <= maxRow; row++) {
+                for (let col = minCol; col <= maxCol; col++) {
+                    const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+                    if (cell) {
+                        cell.classList.add('selecting');
+                    }
+                }
+            }
+        }
+
+        function updateGridColorsForColorIndex(colorIndex) {
+            // Only update cells that use this specific color
+            for (let row = 0; row < gridHeight; row++) {
+                for (let col = 0; col < gridWidth; col++) {
+                    if (stitchPattern[row][col] === colorIndex) {
+                        const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+                        if (cell) {
+                            const colorPicker = document.querySelector(`[data-color="${colorIndex}"]`);
+                            cell.style.backgroundColor = colorPicker.value;
+                        }
+                    }
+                }
+            }
+        }
+
+        function updateSpecificCells(cells) {
+            cells.forEach(({ row, col }) => {
+                const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+                if (cell) {
+                    const colorIndex = stitchPattern[row][col];
+                    if (colorIndex === -1) {
+                        cell.style.backgroundColor = 'white';
+                    } else {
+                        const colorPicker = document.querySelector(`[data-color="${colorIndex}"]`);
+                        cell.style.backgroundColor = colorPicker.value;
+                    }
+                }
+            });
+        }
+
+        function updateGridColors() {
+            // Only update if grid is small enough, otherwise use requestAnimationFrame
+            if (gridWidth * gridHeight < 5000) {
+                for (let row = 0; row < gridHeight; row++) {
+                    for (let col = 0; col < gridWidth; col++) {
+                        const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+                        const colorIndex = stitchPattern[row][col];
+                        
+                        if (colorIndex === -1) {
+                            cell.style.backgroundColor = 'white';
+                        } else {
+                            const colorPicker = document.querySelector(`[data-color="${colorIndex}"]`);
+                            cell.style.backgroundColor = colorPicker.value;
+                        }
+                    }
+                }
+            } else {
+                // For large grids, use requestAnimationFrame to prevent blocking
+                requestAnimationFrame(() => {
+                    const batchSize = 500;
+                    let processed = 0;
+                    
+                    function processBatch() {
+                        for (let i = 0; i < batchSize && processed < gridWidth * gridHeight; i++) {
+                            const row = Math.floor(processed / gridWidth);
+                            const col = processed % gridWidth;
+                            
+                            const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+                            const colorIndex = stitchPattern[row][col];
+                            
+                            if (colorIndex === -1) {
+                                cell.style.backgroundColor = 'white';
+                            } else {
+                                const colorPicker = document.querySelector(`[data-color="${colorIndex}"]`);
+                                cell.style.backgroundColor = colorPicker.value;
+                            }
+                            processed++;
+                        }
+                        
+                        if (processed < gridWidth * gridHeight) {
+                            requestAnimationFrame(processBatch);
+                        }
+                    }
+                    
+                    processBatch();
+                });
+            }
+        }
+
+        function updateInfo() {
+            const size = document.getElementById('canvasSize').value;
+            const count = document.getElementById('stitchCount').value;
+            const orientation = document.getElementById('orientation').value;
+            
+            // Count stitches and colors
+            let stitchCount = 0;
+            const usedColors = new Set();
+            
+            for (let row = 0; row < gridHeight; row++) {
+                for (let col = 0; col < gridWidth; col++) {
+                    if (stitchPattern[row][col] !== -1) {
+                        stitchCount++;
+                        usedColors.add(stitchPattern[row][col]);
+                    }
+                }
+            }
+            
+            const config = canvasSizes[size];
+            const orientationText = orientation === 'landscape' ? 'landscape' : 'portrait';
+            
+            document.getElementById('patternInfo').textContent = 
+                `${config.width}×${config.height} inch ${orientationText} pattern on ${count}-count fabric`;
+            document.getElementById('gridSize').textContent = `${gridWidth} × ${gridHeight}`;
+            document.getElementById('stitchCount').textContent = stitchCount;
+            document.getElementById('colorsUsed').textContent = usedColors.size;
+            
+            updateGridColors();
+        }
+
+        function clearGrid() {
+            stitchPattern = Array(gridHeight).fill().map(() => Array(gridWidth).fill(-1));
+            updateGridColors();
+            updateInfo();
+        }
+
+        function downloadPNG() {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            const cellSize = 12;
+            const padding = 60;
+            canvas.width = gridWidth * cellSize + padding * 2;
+            canvas.height = gridHeight * cellSize + padding * 2;
+            
+            // White background
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw grid lines
+            ctx.strokeStyle = '#d1d5db';
+            ctx.lineWidth = 1;
+            
+            for (let i = 0; i <= gridWidth; i++) {
+                const x = padding + i * cellSize;
+                ctx.beginPath();
+                ctx.moveTo(x, padding);
+                ctx.lineTo(x, padding + gridHeight * cellSize);
+                ctx.stroke();
+            }
+            
+            for (let i = 0; i <= gridHeight; i++) {
+                const y = padding + i * cellSize;
+                ctx.beginPath();
+                ctx.moveTo(padding, y);
+                ctx.lineTo(padding + gridWidth * cellSize, y);
+                ctx.stroke();
+            }
+            
+            // Draw colored cells
+            for (let row = 0; row < gridHeight; row++) {
+                for (let col = 0; col < gridWidth; col++) {
+                    const colorIndex = stitchPattern[row][col];
+                    if (colorIndex !== -1) {
+                        const colorPicker = document.querySelector(`[data-color="${colorIndex}"]`);
+                        ctx.fillStyle = colorPicker.value;
+                        ctx.fillRect(
+                            padding + col * cellSize + 1,
+                            padding + row * cellSize + 1,
+                            cellSize - 2,
+                            cellSize - 2
+                        );
+                    }
+                }
+            }
+            
+            // Add title
+            ctx.fillStyle = '#374151';
+            ctx.font = '18px Arial';
+            ctx.textAlign = 'center';
+            const size = document.getElementById('canvasSize').value;
+            const count = document.getElementById('stitchCount').value;
+            const title = `Cross Stitch Pattern - ${canvasSizes[size].width}×${canvasSizes[size].height}" on ${count}-count`;
+            ctx.fillText(title, canvas.width / 2, 30);
+            
+            // Download
+            const link = document.createElement('a');
+            link.download = `cross-stitch-pattern-${size}-${count}count.png`;
+            link.href = canvas.toDataURL();
+            link.click();
+        }
+
+        function downloadPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({
+                orientation: gridWidth > gridHeight ? 'landscape' : 'portrait',
+                unit: 'mm',
+                format: 'a4'
+            });
+            
+            const pageWidth = doc.internal.pageSize.getWidth();
+            const pageHeight = doc.internal.pageSize.getHeight();
+            const margin = 20;
+            
+            const availableWidth = pageWidth - margin * 2;
+            const availableHeight = pageHeight - margin * 3;
+            const cellWidth = availableWidth / gridWidth;
+            const cellHeight = availableHeight / gridHeight;
+            const cellSize = Math.min(cellWidth, cellHeight);
+            
+            const gridPixelWidth = gridWidth * cellSize;
+            const gridPixelHeight = gridHeight * cellSize;
+            const startX = (pageWidth - gridPixelWidth) / 2;
+            const startY = margin * 2;
+            
+            // Add title
+            doc.setFontSize(16);
+            const size = document.getElementById('canvasSize').value;
+            const count = document.getElementById('stitchCount').value;
+            const title = `Cross Stitch Pattern - ${canvasSizes[size].width}×${canvasSizes[size].height}" on ${count}-count`;
+            doc.text(title, pageWidth / 2, margin, { align: 'center' });
+            
+            // Draw grid and colors
+            doc.setDrawColor(200, 200, 200);
+            doc.setLineWidth(0.1);
+            
+            // Vertical lines
+            for (let i = 0; i <= gridWidth; i++) {
+                const x = startX + i * cellSize;
+                doc.line(x, startY, x, startY + gridPixelHeight);
+            }
+            
+            // Horizontal lines
+            for (let i = 0; i <= gridHeight; i++) {
+                const y = startY + i * cellSize;
+                doc.line(startX, y, startX + gridPixelWidth, y);
+            }
+            
+            // Draw colored cells
+            for (let row = 0; row < gridHeight; row++) {
+                for (let col = 0; col < gridWidth; col++) {
+                    const colorIndex = stitchPattern[row][col];
+                    if (colorIndex !== -1) {
+                        const colorPicker = document.querySelector(`[data-color="${colorIndex}"]`);
+                        const hex = colorPicker.value;
+                        const r = parseInt(hex.substr(1, 2), 16);
+                        const g = parseInt(hex.substr(3, 2), 16);
+                        const b = parseInt(hex.substr(5, 2), 16);
+                        
+                        doc.setFillColor(r, g, b);
+                        doc.rect(
+                            startX + col * cellSize,
+                            startY + row * cellSize,
+                            cellSize,
+                            cellSize,
+                            'F'
+                        );
+                    }
+                }
+            }
+            
+            // Add color legend
+            const usedColors = new Set();
+            for (let row = 0; row < gridHeight; row++) {
+                for (let col = 0; col < gridWidth; col++) {
+                    if (stitchPattern[row][col] !== -1) {
+                        usedColors.add(stitchPattern[row][col]);
+                    }
+                }
+            }
+            
+            if (usedColors.size > 0) {
+                doc.setFontSize(10);
+                doc.setTextColor(0, 0, 0);
+                let legendY = startY + gridPixelHeight + 15;
+                doc.text('Colors Used:', startX, legendY);
+                
+                Array.from(usedColors).forEach((colorIndex, i) => {
+                    const colorPicker = document.querySelector(`[data-color="${colorIndex}"]`);
+                    const hex = colorPicker.value;
+                    const r = parseInt(hex.substr(1, 2), 16);
+                    const g = parseInt(hex.substr(3, 2), 16);
+                    const b = parseInt(hex.substr(5, 2), 16);
+                    
+                    const legendX = startX + (i % 4) * 40;
+                    const currentY = legendY + 10 + Math.floor(i / 4) * 15;
+                    
+                    // Color swatch
+                    doc.setFillColor(r, g, b);
+                    doc.rect(legendX, currentY - 3, 5, 5, 'F');
+                    
+                    // Color label
+                    doc.setTextColor(0, 0, 0);
+                    doc.text(`Color ${colorIndex + 1}: ${hex}`, legendX + 8, currentY);
+                });
+            }
+            
+            // Add info
+            doc.setFontSize(8);
+            const info = `Grid Size: ${gridWidth} × ${gridHeight} | Generated: ${new Date().toLocaleDateString()}`;
+            doc.text(info, pageWidth / 2, pageHeight - 10, { align: 'center' });
+            
+            // Download
+            doc.save(`cross-stitch-pattern-${size}-${count}count.pdf`);
+        }
+
+        function downloadJSON() {
+            const size = document.getElementById('canvasSize').value;
+            const count = document.getElementById('stitchCount').value;
+            const orientation = document.getElementById('orientation').value;
+            
+            // Get colors
+            const colors = {};
+            document.querySelectorAll('.color-picker').forEach((picker, index) => {
+                colors[index] = picker.value;
+            });
+            
+            const patternData = {
+                metadata: {
+                    title: `Cross Stitch Pattern ${canvasSizes[size].width}×${canvasSizes[size].height}"`,
+                    size: size,
+                    stitchCount: count,
+                    orientation: orientation,
+                    gridWidth: gridWidth,
+                    gridHeight: gridHeight,
+                    created: new Date().toISOString()
+                },
+                colors: colors,
+                pattern: stitchPattern
+            };
+            
+            const dataStr = JSON.stringify(patternData, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            
+            const link = document.createElement('a');
+            link.download = `cross-stitch-pattern-${size}-${count}count.json`;
+            link.href = URL.createObjectURL(dataBlob);
+            link.click();
+        }
+    </script>
+</body>
+</html>
